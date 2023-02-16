@@ -1,0 +1,25 @@
+textarea {
+    min-height: 400px;
+}
+
+#email-container {
+    display: flex;
+    justify-content: space-between;
+    border-style: solid;
+}
+
+#left-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#sender-container {
+    margin-right: 20px;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+#right-container {
+    font-weight: lighter;
+    margin-right: 10px;
+}
