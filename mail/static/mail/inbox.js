@@ -50,6 +50,7 @@ function compose_email() {
   remove_messages();
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
@@ -63,6 +64,7 @@ function load_mailbox(mailbox) {
   remove_messages();
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
+  document.querySelector('#email-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
 
   // Show the mailbox name
@@ -94,6 +96,53 @@ function load_mailbox(mailbox) {
       right_container.innerHTML = email.timestamp;
       email_container.append(right_container);
 
+      email_container.addEventListener('click', () => {
+        fetch(`/emails/${email.id}`)
+        .then(response => response.json())
+        .then(email => {
+          console.log(email);
+          document.querySelector('#emails-view').style.display = 'none';
+          document.querySelector('#email-view').style.display = 'block';
+          document.querySelector('#compose-view').style.display = 'none';
+          email_view = document.querySelector("#email-view");
+
+          const sender = document.createElement('div');
+          sender.innerHTML = `<b>From:</b> ${email.sender}`;
+          email_view.append(sender);
+
+          const recipients_div = document.createElement('div');
+          recipients_div.innerHTML = '<b>To: </b>';
+          for (const recipient of email.recipients) {
+            if (email.recipients.indexOf(recipient) === (email.recipients.length - 1)) {
+              recipients_div.innerHTML += `${recipient}`;
+            }
+            else {
+              recipients_div.innerHTML += `${recipient}, `;
+            }
+          }
+          email_view.append(recipients_div);
+
+          const subject = document.createElement('div');
+          subject.innerHTML = `<b>Subject</b> ${email.subject}`;
+          email_view.append(subject);
+
+          const timestamp = document.createElement('div');
+          timestamp.innerHTML = `<b>Timestamp</b> ${email.timestamp}`;
+          email_view.append(timestamp);
+
+          const reply_btn = document.createElement("BUTTON");
+          reply_btn.classList.add('btn','btn-outline-primary');
+          reply_btn.innerHTML = "Reply"
+          email_view.append(reply_btn);
+
+          horizontal_line = document.createElement("hr");
+          email_view.append(horizontal_line);
+
+          const body = document.createElement('div');
+          body.innerHTML = email.body;
+          email_view.append(body);
+        })
+      });
       document.querySelector('#emails-view').append(email_container);
     })
 
