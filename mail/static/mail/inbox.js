@@ -18,11 +18,22 @@ document.addEventListener('DOMContentLoaded', function() {
         body: document.getElementById('compose-body').value
       })
     })
-    .then(response => response.json())
-    .then(result => {
-      console.log(result);
+    .then(response => {
+      return response.json().then(json => {
+        return response.ok ? json : Promise.reject(json.error);
+      });
     })
-    load_mailbox('sent');
+    .then(() => {
+      load_mailbox('sent');
+    })
+    .catch(error_msg => {
+      const error_div = document.createElement('div');
+      error_div.classList.add('alert','alert-danger');
+      error_div.setAttribute('id', 'msg_container');
+      error_div.setAttribute('role', 'alert');
+      error_div.innerHTML = error_msg;
+      document.querySelector('#error_msg_container').append(error_div);
+    })
   });
 
 
@@ -30,8 +41,13 @@ document.addEventListener('DOMContentLoaded', function() {
   load_mailbox('inbox');
 });
 
+function remove_messages() {
+  return document.querySelector('#error_msg_container').innerHTML = "";
+}
+
 
 function compose_email() {
+  remove_messages();
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
@@ -44,6 +60,7 @@ function compose_email() {
 
 
 function load_mailbox(mailbox) {
+  remove_messages();
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
@@ -55,11 +72,12 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-    console.log(emails);
     emails.forEach((email) => {
       const email_container = document.createElement('div');
-      email_container.setAttribute('id', 'email-container')
-
+      email_container.setAttribute('id', 'email-container');
+      if (email.read) {
+        email_container.style.backgroundColor = "lightgrey";
+      }
       const left_container = document.createElement('div');
       left_container.setAttribute('id', 'left-container');
       const sender_container = document.createElement('div');
