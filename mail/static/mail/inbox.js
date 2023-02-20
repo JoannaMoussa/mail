@@ -97,14 +97,23 @@ function load_mailbox(mailbox) {
       email_container.append(right_container);
 
       email_container.addEventListener('click', () => {
+        fetch(`/emails/${email.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            read: true
+          })
+        })
+
         fetch(`/emails/${email.id}`)
         .then(response => response.json())
         .then(email => {
-          console.log(email);
-          document.querySelector('#emails-view').style.display = 'none';
           document.querySelector('#email-view').style.display = 'block';
+          document.querySelector('#emails-view').style.display = 'none';
           document.querySelector('#compose-view').style.display = 'none';
+
           email_view = document.querySelector("#email-view");
+          // Delete the previous mail in the email-view div
+          email_view.innerHTML = "";
 
           const sender = document.createElement('div');
           sender.innerHTML = `<b>From:</b> ${email.sender}`;
