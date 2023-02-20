@@ -149,7 +149,24 @@ function load_mailbox(mailbox) {
             const reply_btn = document.createElement("BUTTON");
             reply_btn.classList.add('btn','btn-outline-primary');
             reply_btn.innerHTML = "Reply";
+            reply_btn.addEventListener('click', () => {
+              compose_email();
+              //Pre-fill the recipient field
+              document.querySelector("#compose-recipients").value = email.sender;
+              //Pre-fill the subject field
+              const email_subject = document.querySelector("#compose-subject");
+              if (email.subject.slice(0,3) === "Re:") {
+                email_subject.value = email.subject;
+              }
+              else {
+                email_subject.value = `Re: ${email.subject}`;
+              }
+              //Pre-fill the body field
+              document.querySelector("#compose-body").value = `On ${email.timestamp} ${email.sender} wrote: ${email.body}`
+            })
+
             btn_container.append(reply_btn);
+
 
             // Create archive or unarchive btn
             const archive_btn = document.createElement("BUTTON");
@@ -202,6 +219,21 @@ function load_mailbox(mailbox) {
             const reply_btn = document.createElement("BUTTON");
             reply_btn.classList.add('btn','btn-outline-primary', 'mt-1');
             reply_btn.innerHTML = "Reply";
+            reply_btn.addEventListener('click', () => {
+              compose_email();
+              //Pre-fill the recipient field
+              document.querySelector("#compose-recipients").value = email.sender;
+              //Pre-fill the subject field
+              const email_subject = document.querySelector("#compose-subject");
+              if (email.subject.slice(0,3) === "Re:") {
+                email_subject.value = email.subject;
+              }
+              else {
+                email_subject.value = `Re: ${email.subject}`;
+              }
+              //Pre-fill the body field
+              document.querySelector("#compose-body").value = `On ${email.timestamp} ${email.sender} wrote: ${email.body}`
+            })
             email_view.append(reply_btn);
           }
 
