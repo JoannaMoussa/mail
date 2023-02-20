@@ -139,10 +139,71 @@ function load_mailbox(mailbox) {
           timestamp.innerHTML = `<b>Timestamp</b> ${email.timestamp}`;
           email_view.append(timestamp);
 
-          const reply_btn = document.createElement("BUTTON");
-          reply_btn.classList.add('btn','btn-outline-primary');
-          reply_btn.innerHTML = "Reply"
-          email_view.append(reply_btn);
+          const current_user_email = document.querySelector("#user_email").innerHTML;
+          // if current logged in user is not the sender of the email: show archive/unarchive btn
+          if (current_user_email != email.sender) {
+            const btn_container = document.createElement('div');
+            btn_container.classList.add("btn-container");
+
+            // Create reply btn
+            const reply_btn = document.createElement("BUTTON");
+            reply_btn.classList.add('btn','btn-outline-primary');
+            reply_btn.innerHTML = "Reply";
+            btn_container.append(reply_btn);
+
+            // Create archive or unarchive btn
+            const archive_btn = document.createElement("BUTTON");
+            archive_btn.classList.add('btn','btn-outline-primary', 'ml-2');
+            archive_btn.setAttribute('id', 'archive-btn');
+            if (email.archived === true) {
+              archive_btn.innerHTML = "Unarchive";
+              archive_btn.addEventListener('click', () => {
+                fetch(`/emails/${email.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                    archived: false 
+                  })
+                })
+                .then(response => {
+                  if (response.ok) {
+                    load_mailbox('inbox')
+                  }
+                  else {
+                    document.querySelector("#error_msg_container").innerHTML = "An error occured. Please try again."
+                  }
+                })
+              })
+            }
+            else {
+              archive_btn.innerHTML = "Archive";
+              archive_btn.addEventListener('click', () => {
+                fetch(`/emails/${email.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                    archived: true
+                  })
+                })
+                .then(response => {
+                  if (response.ok){
+                    load_mailbox('inbox')
+                  }
+                  else {
+                    document.querySelector("#error_msg_container").innerHTML = "An error occured. Please try again."
+                  }
+                })
+              })
+            }
+            btn_container.append(archive_btn);
+
+            email_view.append(btn_container);
+          }
+          // if current logged in user is the sender: don't show an archive/unarchive btn
+          else {
+            const reply_btn = document.createElement("BUTTON");
+            reply_btn.classList.add('btn','btn-outline-primary', 'mt-1');
+            reply_btn.innerHTML = "Reply";
+            email_view.append(reply_btn);
+          }
 
           horizontal_line = document.createElement("hr");
           email_view.append(horizontal_line);
