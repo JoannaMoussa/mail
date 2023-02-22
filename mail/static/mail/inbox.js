@@ -209,12 +209,12 @@ function load_mailbox(mailbox) {
 
           // Get email subject
           const subject = document.createElement('div');
-          subject.innerHTML = `<b>Subject</b> ${email.subject}`;
+          subject.innerHTML = `<b>Subject: </b> ${email.subject}`;
           email_view.append(subject);
 
           // Get email timestamp
           const timestamp = document.createElement('div');
-          timestamp.innerHTML = `<b>Timestamp</b> ${email.timestamp}`;
+          timestamp.innerHTML = `<b>Timestamp: </b> ${email.timestamp}`;
           email_view.append(timestamp);
 
           const current_user_email = document.querySelector("#user_email").innerHTML;
