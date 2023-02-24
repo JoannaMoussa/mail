@@ -2,29 +2,38 @@ textarea {
     min-height: 400px;
 }
 
-#email-container {
-    display: flex;
-    justify-content: space-between;
-    border-style: solid;
+@keyframes remove {
+    0% {
+        opacity: 1;
+        height: 100%;
+        line-height: 100%;
+    }
+    75% {
+        opacity: 0;
+        height: 100%;
+        line-height: 100%;
+    }
+    100% {
+        opacity: 0;
+        height: 0px;
+        line-height: 0px;
+    }
 }
 
-#left-container {
-    display: flex;
-    justify-content: space-between;
+.email-container {
+    animation-name: remove;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    animation-play-state: paused;
 }
 
-#sender-container {
-    margin-right: 20px;
-    margin-left: 5px;
-    font-weight: bold;
+.action_btn {
+    cursor: pointer;
+    transition-property: transform;
+    transition-duration: 0.25s;
 }
 
-#right-container {
-    font-weight: lighter;
-    margin-right: 10px;
-}
-
-.btn-container {
-    display: flex;
-    margin-top: 5px;
+.action_btn:hover{
+    transform: scale(1.33,1.33);
+    color: #83bfff;
 }

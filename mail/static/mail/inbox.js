@@ -75,6 +75,83 @@ function update_email_archive(email_id, is_archived) {
   })
 }
 
+
+// This function is called when the archive btn in the mailbox is clicked
+// When it's clicked, the email.archived will be set to true, and the email div will be deleted from the mailbox
+function mailbox_archive(email) {
+  let put_archived;
+  if (email.archived) {
+    put_archived = false
+  }
+  else {
+    put_archived = true
+  }
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: put_archived 
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      // disable the click on the archive icon, read icon and on the email container
+      let archive_icon = document.getElementById(`arch_${email.id}`);
+      let read_icon = document.getElementById(`read_${email.id}`);
+      let email_div = document.getElementById(email.id.toString());
+      archive_icon.style.pointerEvents = 'none';
+      read_icon.style.pointerEvents = 'none';
+      email_div.style.pointerEvents = 'none';
+      // Run the animation on the email container and then remove the email container
+      email_div.style.animationPlayState = 'running';
+      email_div.addEventListener('animationend', () => {
+        email_div.remove()
+      });
+    }
+    else {
+      response.json().then(result => {
+        create_error_msg(result.error)
+      })
+    }
+  })
+}
+
+
+// This function is called when the read button in the mailbox is clicked
+function read_icon_click(email) {
+  let was_read = email.read;
+  
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      read: !was_read
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      email.read = !was_read;
+      const readIcon = document.getElementById(`read_${email.id}`);
+      if (was_read){
+        document.getElementById(email.id.toString()).style.backgroundColor = "white";
+        readIcon.classList.remove("bi-envelope-open");
+        readIcon.classList.add("bi-envelope");
+        readIcon.setAttribute("title", "Mark as read");
+      }
+      else{
+        document.getElementById(email.id.toString()).style.backgroundColor = "lightgrey";
+        readIcon.classList.remove("bi-envelope");
+        readIcon.classList.add("bi-envelope-open");
+        readIcon.setAttribute("title", "Mark as unread");
+      }
+    }
+    else {
+      response.json().then(result => {
+        create_error_msg(result.error)
+      })
+    } 
+  })
+}
+
+
 // This function empties the #msg_container div
 function remove_messages() {
   return document.querySelector('#msg_container').innerHTML = "";
@@ -135,25 +212,82 @@ function load_mailbox(mailbox) {
   })
   .then(emails => {
     emails.forEach((email) => {
+      // Create email container
       const email_container = document.createElement('div');
-      email_container.setAttribute('id', 'email-container');
+      email_container.classList.add("email-container", "d-flex", "justify-content-between", "border", "border-dark", "p-3");
+      email_container.setAttribute("id", `${email.id}`);
       if (email.read) {
         email_container.style.backgroundColor = "lightgrey";
       }
+      // Create left container
       const left_container = document.createElement('div');
-      left_container.setAttribute('id', 'left-container');
+      left_container.classList.add('d-flex', 'justify-content-between')
+      // Create sender container
       const sender_container = document.createElement('div');
-      sender_container.setAttribute('id', 'sender-container');
+      sender_container.classList.add("font-weight-bold", "ml-2", "mr-3")
       sender_container.innerHTML = email.sender;
+      // Create subject container
       const subject_container = document.createElement('div');
       subject_container.innerHTML = email.subject;
+
       left_container.append(sender_container);
       left_container.append(subject_container);
       email_container.append(left_container);
-
+      // Create right container
       const right_container = document.createElement('div');
-      right_container.setAttribute('id', 'right-container');
-      right_container.innerHTML = email.timestamp;
+      right_container.classList.add("d-flex", "font-weight-light", "mr-2");
+      // Create timestamp container
+      const timestamp_container = document.createElement('div');
+      timestamp_container.innerHTML = email.timestamp;
+      right_container.append(timestamp_container);
+      // Create the container of the archive and read btn (the sent emails should not have read and archive btns)
+      const current_user_email = document.querySelector("#user_email").innerHTML;
+      if (current_user_email != email.sender) {
+        // Create the container of the action btns
+        const arch_read_container = document.createElement('div');
+        arch_read_container.classList.add("d-flex", "ml-3");
+        // Create archive btn 
+        const arch_icon = document.createElement('i');
+        arch_icon.classList.add("action_btn");
+        arch_icon.setAttribute("id", `arch_${email.id}`);
+        if (email.archived) {
+          arch_icon.setAttribute("title", "Unarchive")
+        }
+        else {
+          arch_icon.setAttribute("title", "Archive")
+        }
+        arch_icon.classList.add('arch_icon', 'bi', 'bi-archive', 'mr-3');
+        // Add click event listener to the archive icon 
+        arch_icon.addEventListener("click", (event) => {
+          event.stopPropagation(); //to prevent the click event from bubbling, so the click event on the email container will not happen.
+          mailbox_archive(email);
+        })
+  
+        arch_read_container.append(arch_icon);
+  
+        // Create read/unread btn
+        const read_icon = document.createElement('i');
+        read_icon.setAttribute("id", `read_${email.id}`);
+        read_icon.classList.add("action_btn");
+        if (email.read) {
+          read_icon.classList.add("bi", "bi-envelope-open");
+          read_icon.setAttribute("title", "Mark as unread");
+        }
+        else {
+          read_icon.classList.add("bi", "bi-envelope");
+          read_icon.setAttribute("title", "Mark as read");
+        }
+        // Add click event listener on the read/unread icon
+        read_icon.addEventListener("click", (event) => {
+          event.stopPropagation();
+          read_icon_click(email);
+        })
+  
+        arch_read_container.append(read_icon);
+        
+        right_container.append(arch_read_container);
+      }
+
       email_container.append(right_container);
 
       // Add a click event listener to every email
@@ -224,7 +358,7 @@ function load_mailbox(mailbox) {
           if (current_user_email != email.sender) {
             // Create a container for the reply and archive/unarchive btn
             const btn_container = document.createElement('div');
-            btn_container.classList.add("btn-container");
+            btn_container.classList.add("d-flex", "mt-2");
 
             // Create reply btn
             const reply_btn = document.createElement("BUTTON");
