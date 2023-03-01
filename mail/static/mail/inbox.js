@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-
   // Use buttons to toggle between views
   document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
   document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
@@ -137,7 +136,7 @@ function read_icon_click(email) {
         readIcon.setAttribute("title", "Mark as read");
       }
       else{
-        document.getElementById(email.id.toString()).style.backgroundColor = "lightgrey";
+        document.getElementById(email.id.toString()).style.backgroundColor = "#cfd3d5";
         readIcon.classList.remove("bi-envelope");
         readIcon.classList.add("bi-envelope-open");
         readIcon.setAttribute("title", "Mark as unread");
@@ -181,9 +180,8 @@ function reply_btn_click(email) {
 function compose_email() {
   remove_messages();
   // Show compose view and hide other views
-  document.querySelector('#compose-view').style.display = 'block';
-  document.querySelector('#emails-view').style.display = 'none';
-  document.querySelector('#email-view').style.display = 'none';
+  document.querySelector("#compose-view").style.display = "block";
+  document.querySelector("#mailbox-and-emailview-container").style.display = "none";
 
   // Clear out composition fields
   document.querySelector('#compose-recipients').value = '';
@@ -195,9 +193,10 @@ function compose_email() {
 // This function is called when one of these buttons is clicked: inbox, sent, archived.
 function load_mailbox(mailbox) {
   remove_messages();
-  // Show the mailbox and hide other views
-  document.querySelector('#emails-view').style.display = 'block';
-  document.querySelector('#email-view').style.display = 'none';
+  const selected_mail_view = document.querySelector("#selected-email-view"); 
+  selected_mail_view.innerHTML = "";
+  // Show just the mailbox-and-emailview-container
+  document.querySelector('#mailbox-and-emailview-container').style.display = 'flex';
   document.querySelector('#compose-view').style.display = 'none';
 
   // Show the mailbox name
@@ -214,41 +213,37 @@ function load_mailbox(mailbox) {
     emails.forEach((email) => {
       // Create email container
       const email_container = document.createElement('div');
-      email_container.classList.add("email-container", "d-flex", "justify-content-between", "border", "border-dark", "p-3");
+      email_container.classList.add("email-container", "d-flex", "flex-column", "border", "border-dark", "p-2");
       email_container.setAttribute("id", `${email.id}`);
       if (email.read) {
-        email_container.style.backgroundColor = "lightgrey";
+        email_container.style.backgroundColor = "#cfd3d5";
       }
-      // Create left container
-      const left_container = document.createElement('div');
-      left_container.classList.add('d-flex', 'justify-content-between')
+      // Create sender+icons+timestamp container
+      const sender_icon_timestamp_container = document.createElement('div');
+      sender_icon_timestamp_container.classList.add('d-flex', 'justify-content-between');
       // Create sender container
       const sender_container = document.createElement('div');
-      sender_container.classList.add("font-weight-bold", "ml-2", "mr-3")
-      sender_container.innerHTML = email.sender;
-      // Create subject container
-      const subject_container = document.createElement('div');
-      subject_container.innerHTML = email.subject;
+      sender_container.classList.add("font-weight-bold", "mb-2");
+      sender_container.innerHTML = email.sender_fullname;
+      sender_icon_timestamp_container.append(sender_container);
 
-      left_container.append(sender_container);
-      left_container.append(subject_container);
-      email_container.append(left_container);
-      // Create right container
-      const right_container = document.createElement('div');
-      right_container.classList.add("d-flex", "font-weight-light", "mr-2");
+      //Create icons+timestamp container
+      const icon_timestamp_container = document.createElement('div');
+      icon_timestamp_container.classList.add("d-flex");
+
       // Create timestamp container
       const timestamp_container = document.createElement('div');
-      timestamp_container.innerHTML = email.timestamp;
-      right_container.append(timestamp_container);
-      // Create the container of the archive and read btn (the sent emails should not have read and archive btns)
+      timestamp_container.innerHTML = email.timestamp.split(",")[0];
+      icon_timestamp_container.append(timestamp_container);
+
+      const icon_container = document.createElement('div');
+
+      // Create the icons of the archive and read btn (the sent emails should not have read and archive icons)
       const current_user_email = document.querySelector("#user_email").innerHTML;
       if (current_user_email != email.sender) {
-        // Create the container of the action btns
-        const arch_read_container = document.createElement('div');
-        arch_read_container.classList.add("d-flex", "ml-3");
         // Create archive btn 
         const arch_icon = document.createElement('i');
-        arch_icon.classList.add("action_btn");
+        arch_icon.classList.add('action_btn', 'bi', 'bi-archive', 'mr-3');
         arch_icon.setAttribute("id", `arch_${email.id}`);
         if (email.archived) {
           arch_icon.setAttribute("title", "Unarchive")
@@ -256,19 +251,17 @@ function load_mailbox(mailbox) {
         else {
           arch_icon.setAttribute("title", "Archive")
         }
-        arch_icon.classList.add('arch_icon', 'bi', 'bi-archive', 'mr-3');
         // Add click event listener to the archive icon 
         arch_icon.addEventListener("click", (event) => {
           event.stopPropagation(); //to prevent the click event from bubbling, so the click event on the email container will not happen.
           mailbox_archive(email);
         })
-  
-        arch_read_container.append(arch_icon);
+        icon_container.append(arch_icon);
   
         // Create read/unread btn
         const read_icon = document.createElement('i');
-        read_icon.setAttribute("id", `read_${email.id}`);
         read_icon.classList.add("action_btn");
+        read_icon.setAttribute("id", `read_${email.id}`);
         if (email.read) {
           read_icon.classList.add("bi", "bi-envelope-open");
           read_icon.setAttribute("title", "Mark as unread");
@@ -282,17 +275,44 @@ function load_mailbox(mailbox) {
           event.stopPropagation();
           read_icon_click(email);
         })
-  
-        arch_read_container.append(read_icon);
-        
-        right_container.append(arch_read_container);
-      }
+        icon_container.append(read_icon);
 
-      email_container.append(right_container);
+        // Add mouseenter event listener to every email
+        email_container.addEventListener("mouseenter", () => {
+          timestamp_container.style.display = "none";
+          icon_container.style.display = "block";
+        })
+
+        // Add mouseleave event listener to every email
+        email_container.addEventListener("mouseleave", () => {
+          timestamp_container.style.display = "block";
+          icon_container.style.display = "none";
+        })
+      }
+      icon_timestamp_container.append(icon_container);
+      icon_container.style.display = "none";
+      timestamp_container.style.display = "block";
+      
+      sender_icon_timestamp_container.append(icon_timestamp_container);
+    
+      email_container.append(sender_icon_timestamp_container);
+
+      // Create subject container
+      const subject_container = document.createElement('div');
+      subject_container.classList.add("mb-2")
+      subject_container.innerHTML = email.subject;
+      email_container.append(subject_container);
+      
+      //Create container of the first few characters of the body
+      const first_words_of_body = document.createElement('div');
+      first_words_of_body.classList.add("font-weight-light", "body_truncation");
+      first_words_of_body.innerHTML = email.body
+      email_container.append(first_words_of_body);
 
       // Add a click event listener to every email
       email_container.addEventListener('click', () => {
         remove_messages();
+        email_container.style.backgroundColor = "#cfd3d5";
         // Mark the message as read
         fetch(`/emails/${email.id}`, {
           method: 'PUT',
@@ -315,63 +335,26 @@ function load_mailbox(mailbox) {
           })
         })
         .then(email => {
-          document.querySelector('#email-view').style.display = 'block';
-          document.querySelector('#emails-view').style.display = 'none';
-          document.querySelector('#compose-view').style.display = 'none';
-
-          email_view = document.querySelector("#email-view");
-          // Delete the previous mail in the email-view div
+          email_view = document.querySelector("#selected-email-view");
+          // Delete the previous mail in the selected-email-view div
           email_view.innerHTML = "";
 
-          // Get email sender
-          const sender = document.createElement('div');
-          sender.innerHTML = `<b>From:</b> ${email.sender}`;
-          email_view.append(sender);
-
-          // Get email recepients
-          const recipients_div = document.createElement('div');
-          recipients_div.innerHTML = '<b>To: </b>';
-          for (const recipient of email.recipients) {
-            if (email.recipients.indexOf(recipient) === (email.recipients.length - 1)) {
-              recipients_div.innerHTML += `${recipient}`;
-            }
-            else {
-              recipients_div.innerHTML += `${recipient}, `;
-            }
-          }
-          email_view.append(recipients_div);
-
-          // Get email subject
+          // Create subject+archive btn container
+          const subject_arch = document.createElement('div');
+          subject_arch.classList.add("d-flex", "justify-content-between", "align-items-start", "mb-3");
+          // Create subject container
           const subject = document.createElement('div');
-          subject.innerHTML = `<b>Subject: </b> ${email.subject}`;
-          email_view.append(subject);
-
-          // Get email timestamp
-          const timestamp = document.createElement('div');
-          timestamp.innerHTML = `<b>Timestamp: </b> ${email.timestamp}`;
-          email_view.append(timestamp);
-
-          const current_user_email = document.querySelector("#user_email").innerHTML;
+          subject.classList.add("subject");
+          subject.innerHTML = email.subject;
+          subject_arch.append(subject);
+          //Create archive btn
           // As mentioned in the project specifications, I shouldn't have archive/unarchive option in the Sent mailbox.
           // So I added this condition: 
           // if current logged in user is not the sender of the email: show archive/unarchive btn
-          if (current_user_email != email.sender) {
-            // Create a container for the reply and archive/unarchive btn
-            const btn_container = document.createElement('div');
-            btn_container.classList.add("d-flex", "mt-2");
-
-            // Create reply btn
-            const reply_btn = document.createElement("BUTTON");
-            reply_btn.classList.add('btn','btn-outline-primary');
-            reply_btn.innerHTML = "Reply";
-            reply_btn.addEventListener('click', () => reply_btn_click(email))
-
-            btn_container.append(reply_btn);
-
-            // Create archive or unarchive btn
-            const archive_btn = document.createElement("BUTTON");
-            archive_btn.classList.add('btn','btn-outline-primary', 'ml-2');
-            archive_btn.setAttribute('id', 'archive-btn');
+          const current_user = document.querySelector("#user_email").innerHTML;
+          if (current_user != email.sender) {
+            const archive_btn = document.createElement("button");
+            archive_btn.classList.add('btn','btn-outline-primary');
             if (email.archived === true) {
               archive_btn.innerHTML = "Unarchive";
               archive_btn.addEventListener('click', () => update_email_archive(email.id, false))
@@ -380,28 +363,75 @@ function load_mailbox(mailbox) {
               archive_btn.innerHTML = "Archive";
               archive_btn.addEventListener('click', () => update_email_archive(email.id, true))
             }
-            btn_container.append(archive_btn);
-
-            email_view.append(btn_container);
+            subject_arch.append(archive_btn);
           }
-          // if current logged in user is the sender: don't create an archive/unarchive btn
-          // just create the reply btn
-          else {
-            const reply_btn = document.createElement("BUTTON");
-            reply_btn.classList.add('btn','btn-outline-primary', 'mt-1');
+          email_view.append(subject_arch);
+
+          // Create icon+sender+recipient+timestamp container
+          const icon_sender_recip_timestamp = document.createElement('div');
+          icon_sender_recip_timestamp.classList.add("d-flex", "mb-3", "justify-content-start");
+          // Create user icon 
+          const user_icon = document.createElement('i');
+          user_icon.classList.add("bi", "bi-person-circle", "user_icon", "mr-3", "d-flex", "justify-content-start");
+          icon_sender_recip_timestamp.append(user_icon);
+          // Create sender+recipient+timestamp container
+          const sender_recip_timestamp = document.createElement('div');
+          sender_recip_timestamp.classList.add("d-flex", "justify-content-between", "w-100");
+          // Create sender+recipient container
+          const sender_recipient = document.createElement('div');
+          sender_recipient.classList.add("d-flex", "flex-column", "mr-5");
+          // Create sender container
+          const sender = document.createElement('div');
+          sender.classList.add("d-flex");
+          // Create sender username container
+          const sender_username = document.createElement('div');
+          sender_username.classList.add("mr-2");
+          sender_username.innerHTML = email.sender_fullname;
+          sender.append(sender_username);
+          // Create sender email container
+          const sender_email = document.createElement('div');
+          sender_email.classList.add("font-weight-light");
+          sender_email.innerHTML = `(${email.sender})`;
+          sender.append(sender_email);
+
+          sender_recipient.append(sender);
+          // Create recipient container
+          const recipients_div = document.createElement('div');
+          recipients_div.innerHTML = "<b>To: </b>";
+          for (const recipient of email.recipients) {
+            if (email.recipients.indexOf(recipient) === (email.recipients.length - 1)) {
+              recipients_div.innerHTML += `${recipient}`;
+            }
+            else {
+              recipients_div.innerHTML += `${recipient}, `;
+            }
+          }
+          sender_recipient.append(recipients_div);
+          sender_recip_timestamp.append(sender_recipient);
+          // Create timestamp container
+          const timestamp = document.createElement('div');
+          timestamp.classList.add("font-weight-light", "text-nowrap");
+          timestamp.innerHTML = email.timestamp;
+          sender_recip_timestamp.append(timestamp);
+
+          icon_sender_recip_timestamp.append(sender_recip_timestamp);
+
+          email_view.append(icon_sender_recip_timestamp);
+
+          // Create body container
+          const body = document.createElement('div');
+          body.classList.add("mb-4");
+          body.innerHTML = email.body.replace(/\n/g, "<br>");
+          email_view.append(body);
+
+          // Create reply btn
+            const reply_btn = document.createElement("button");
+            reply_btn.classList.add('btn','btn-outline-primary', 'reply_btn');
             reply_btn.innerHTML = "Reply";
             reply_btn.addEventListener('click', () => reply_btn_click(email))
             email_view.append(reply_btn);
-          }
-
-          horizontal_line = document.createElement("hr");
-          email_view.append(horizontal_line);
-
-          // Get email body
-          const body = document.createElement('div');
-          body.innerHTML = email.body.replace(/\n/g, "<br>");
-          email_view.append(body);
         })
+
         // catch for the fetch(`/emails/${email.id}`)
         .catch(error_msg => {
           create_error_msg(error_msg)

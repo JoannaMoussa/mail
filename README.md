@@ -12,7 +12,7 @@ The application has the following features:
 1. **Register, log in and log out:** Users can register for a new account, and log in / log out.
 
 1. **Mailbox:** When a user visits their Inbox, Sent mailbox, or Archive, a GET request to a specific API route is made to request emails for a particular mailbox. Every email is displayed in its own box, that displays the sender email, the subject and the timestamp. The emails are listed in reverse chronological order. 
-In addition to that, in the **Inbox** and **Archive** mailboxes, the user has the option, for every email, to archive/unarchive it or mark it as read/unread.
+In addition to that, from the **Inbox** and **Archive** mailboxes views, the user has the ability, for every email, to archive/unarchive it or mark it as read/unread, by clicking on the appropriate icon.
 
 1. **Send Mail:** The user can click on the compose button, and the user will be presented with a "New mail" form. The form fields to be filled are: recipients, subject and body. When the user clicks the submit button, a POST request to a specific API route is made to send the email. The user will be presented with a message stating if the email was successfully sent or not.
 

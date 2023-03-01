@@ -2,23 +2,26 @@
 {% load static %}
 
 {% block body %}
+    <div class="header_container">
     <h2 id="user_email">{{ request.user.email }}</h2>
-
-    <button class="btn btn-sm btn-outline-primary" id="inbox">Inbox</button>
-    <button class="btn btn-sm btn-outline-primary" id="compose">Compose</button>
-    <button class="btn btn-sm btn-outline-primary" id="sent">Sent</button>
-    <button class="btn btn-sm btn-outline-primary" id="archived">Archived</button>
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
-    <hr>
-    <div id="msg_container"></div>
-
-    <div id="email-view">
+        <button class="btn btn-sm btn-outline-primary" id="inbox">Inbox</button>
+        <button class="btn btn-sm btn-outline-primary" id="compose">Compose</button>
+        <button class="btn btn-sm btn-outline-primary" id="sent">Sent</button>
+        <button class="btn btn-sm btn-outline-primary" id="archived">Archived</button>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
+        <hr>
     </div>
 
-    <div id="emails-view">
+    <div id="msg_container" class="msg_container"></div>
+
+    <div id="mailbox-and-emailview-container" class="mailbox_and_emailview_container mb-3 p-2 border border-dark">
+        <div id="emails-view" class="mailbox_container col-5 border-right p-3">
+        </div>
+        <div id="selected-email-view" class="email_view_container col-7 p-3 d-flex flex-column">
+        </div>
     </div>
 
-    <div id="compose-view">
+    <div id="compose-view" class="compose_container">
         <h3>New Email</h3>
         <form id="compose-form">
             <div class="form-group">
